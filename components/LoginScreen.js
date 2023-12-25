@@ -16,8 +16,8 @@ const LoginScreen = ({ navigation }) => {
         username,
         password
       });
-      alert(`Login Successful! Token: ${response.data.token}`);
-      // You can navigate to another screen or store the token as needed
+      navigation.navigate('Home', { username: response.data.username });
+      
     } catch (error) {
       // Check if the error response is defined and has a data property
       if (error.response && error.response.data) {
@@ -47,7 +47,7 @@ const LoginScreen = ({ navigation }) => {
     >
       <View style={styles.card}>
         {/* Logo placeholder - replace with <Image> if you have a logo */}
-        <Text style={styles.logo}>Rachel</Text>
+        <Text style={styles.logo}>Rachel LOGO here</Text>
         
         {/* Username Input */}
         <TextInput
@@ -79,7 +79,7 @@ const LoginScreen = ({ navigation }) => {
         <Text style={styles.nonClickableText}>
             Forgot your password?
         </Text>
-        <Text style={styles.clickableText} onPress={() => navigation.navigate('Signup')}>
+        <Text style={styles.clickableText} onPress={() => navigation.navigate('ResetPassword')}>
             {' '}Reset password
         </Text>
         </Text>

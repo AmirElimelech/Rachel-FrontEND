@@ -31,10 +31,10 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 12,
     fontSize: 16, // Slightly larger font for readability
-    backgroundColor: 'rgba(255, 255, 255, 0.7)', // Slightly transparent input fields
+    backgroundColor: 'rgba(255, 255, 255, 0.9)', // Slightly transparent input fields
   },
   button: {
-    backgroundColor: 'rgba(200, 211, 211, 0.8)',
+    backgroundColor: '#6E6E6E',
     borderRadius: 5,
     width: '100%', // A moderate width for the button
     paddingVertical: 12,
