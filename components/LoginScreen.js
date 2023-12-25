@@ -1,7 +1,10 @@
+
+// export default LoginScreen;
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import axios from 'axios';
 import { styles } from './LoginScreenStyle';
+import { ImageBackground } from 'react-native';
 
 const LoginScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
@@ -30,39 +33,77 @@ const LoginScreen = ({ navigation }) => {
       }
     }
   };
-  
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.welcomeText}>Welcome to Rachel</Text>
+  <ImageBackground
+    source={require('../assets/background.png')} // Change this to the path of your image file
+    style={styles.backgroundImage}
+    >
 
-      <TextInput
-        placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
-        style={styles.input}
-      />
 
-      <TextInput
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={styles.input}
-      />
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
+      <View style={styles.card}>
+        {/* Logo placeholder - replace with <Image> if you have a logo */}
+        <Text style={styles.logo}>Rachel</Text>
+        
+        {/* Username Input */}
+        <TextInput
+          placeholder="Username"
+          value={username}
+          onChangeText={setUsername}
+          style={styles.input}
+          autoCapitalize="none"
+          autoCompleteType="off"
+          keyboardType="default"
+        />
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
-      </TouchableOpacity>
+        {/* Password Input */}
+        <TextInput
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          style={styles.input}  
+          autoCompleteType="off"
+        />
 
-      <Text
-        style={styles.signupText}
-        onPress={() => navigation.navigate('Signup')} // Replace with your signup screen navigation
-      >
-        Don't have an account? Sign up now
-      </Text>
-    </View>
-  );
+        {/* Login Button */}
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>LOG IN</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.signupText}>
+        <Text style={styles.nonClickableText}>
+            Forgot your password?
+        </Text>
+        <Text style={styles.clickableText} onPress={() => navigation.navigate('Signup')}>
+            {' '}Reset password
+        </Text>
+        </Text>
+
+        <Text style={styles.signupText}>
+        <Text style={styles.nonClickableText}>
+            Don't have an account?
+        </Text>
+        <Text style={styles.clickableText} onPress={() => navigation.navigate('Signup')}>
+            {' '}Sign up
+        </Text>
+        </Text>
+        <Text
+          style={styles.clickableText} onPress={() => navigation.navigate('Contactus')}>
+          Contact us
+        </Text>
+      </View>
+    </KeyboardAvoidingView>
+  </ImageBackground>
+);
 };
 
 export default LoginScreen;
+
+
+
+
