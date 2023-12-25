@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert
-} from 'react-native';
-import { Picker } from '@react-native-picker/picker';
 import axios from 'axios';
 import { styles } from './SignupScreenStyle';
-import SectionedMultiSelect from 'react-native-sectioned-multi-select';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import { CheckBox } from 'react-native-elements';
 import { ImageBackground } from 'react-native';
+import { CheckBox } from 'react-native-elements';
+import React, { useState, useEffect } from 'react';
+import { Picker } from '@react-native-picker/picker';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import SectionedMultiSelect from 'react-native-sectioned-multi-select';
+import {
+    View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert
+  } from 'react-native';
+
 
 
 const SignupScreen = ({ navigation }) => {
@@ -58,25 +60,43 @@ const SignupScreen = ({ navigation }) => {
 
 
   // Additional state variables
-  const [isTypeSelected, setIsTypeSelected] = useState(false);
-  const [userType, setUserType] = useState('civilian');
-  const [isShelterStep, setIsShelterStep] = useState(false);
-
-  // State for dropdown data
-  const [countries, setCountries] = useState([]);
   const [cities, setCities] = useState([]);
-  const [intentions, setIntentions] = useState([]);
   const [languages, setLanguages] = useState([]);
+  const [countries, setCountries] = useState([]);
+  const [intentions, setIntentions] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0); 
+  const [userType, setUserType] = useState('civilian');
   const [showTermsPage, setShowTermsPage] = useState(true);
-  const [isTosBottomReached, setIsTosBottomReached] = useState(false);
-  const [isShelterStepDecided, setIsShelterStepDecided] = useState(false);
+  const [isShelterStep, setIsShelterStep] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [isTypeSelected, setIsTypeSelected] = useState(false);
   const [isDecidingShelter, setIsDecidingShelter] = useState(false);
+  const [isTosBottomReached, setIsTosBottomReached] = useState(false);
+ 
 
 
 
+
+  const steps = ['Terms of Service', 'User Type', 'Registration Details'];
+
+  const CustomSelectedIcon = () => (
+    <MaterialIcons name="add-box" size={25} color="#6E6E6E" />
+    );  
+
+  const ProgressIndicator = ({ currentStep, steps }) => {
+    return (
+      <View style={styles.progressContainer}>
+        {steps.map((step, index) => (
+          <View key={step} style={[styles.stepDot, currentStep >= index && styles.activeStepDot]} />
+        ))}
+      </View>
+    );
+  };
+
+  
   const idTypeChoices = [
+    { label: 'Chose your ID type', value: '' },
     { label: 'Israeli ID', value: 'israeli_id' },
     { label: 'Passport', value: 'passport' },
     { label: 'Other Identification', value: 'other' },
@@ -107,16 +127,19 @@ const SignupScreen = ({ navigation }) => {
   // Fetch cities when a country is selected
   useEffect(() => {
     const fetchCities = async () => {
-      if (formData.country) {
-        try {
-          const response = await axios.get(`http://192.168.1.248:8000/Api/cities/?country_id=${formData.country}`);
-
-
-          setCities(response.data);
-        } catch (error) {
-          console.error('Error fetching cities:', error);
+        if (formData.country) {
+            try {
+                const response = await axios.get(`http://192.168.1.248:8000/Api/cities/?country_id=${formData.country}`);
+                setCities(response.data);
+            } catch (error) {
+                if (error.response && error.response.status === 404) {
+                    // Handle 404 error - No cities found for the selected country
+                    setCities([]);
+                } else {
+                    console.error('Error fetching cities:', error);
+                }
+            }
         }
-      }
     };
 
     if (formData.country) {
@@ -184,21 +207,31 @@ const SignupScreen = ({ navigation }) => {
 
   }, []);
 
+  const handleChange = (name, value) => {
+    if (name === 'intentions') {
+      // Special handling for intentions as it's an array
+      setFormData({ ...formData, intentions: value });
+    } else {
+      // For all other fields
+      setFormData({ ...formData, [name]: value });
+    }
 
-    const handleChange = (name, value) => {
-        setFormData({ ...formData, [name]: value });
-    };
-
-    const handleUserTypeSelection = (type) => {
-        setUserType(type);
-        setIsTypeSelected(true);
-        if (type === 'support_provider') {
-          setIsDecidingShelter(true);
+    setFormData(prevFormData => {
+        // Handle ID type change and set country_of_issue for specific types
+        if (name === 'id_type') {
+            const isIsraeliIdOrPassport = value === 'passport' || value === 'israeli_id';
+            return {
+                ...prevFormData,
+                [name]: value,
+                country_of_issue: isIsraeliIdOrPassport ? '101' : prevFormData.country_of_issue
+            };
         } else {
-          setIsDecidingShelter(false);
+            // For all other fields, update the value as usual
+            return { ...prevFormData, [name]: value };
         }
-      };
-      
+    });
+  };
+
 
     const handleNext = () => {
     setIsTypeSelected(true);
@@ -244,7 +277,7 @@ const SignupScreen = ({ navigation }) => {
         user_type: userType,
         ...formData
       });
-      Alert.alert('Signup Successful', `Welcome, ${response.data.user.username}!`);
+      Alert.alert('Signup Successful', `Welcome, ${response.data.user.username}! Please wait for Administrator to Activate your account`);
       navigation.navigate('Login');  
     } catch (error) {
       Alert.alert('Signup Failed', error.response?.data.error || error.message);
@@ -263,6 +296,12 @@ const SignupScreen = ({ navigation }) => {
     const isCloseToBottom = ({ layoutMeasurement, contentOffset, contentSize }) => {
       return layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
     };
+
+    const onTermsAcceptanceChange = () => {
+        setTermsAccepted(!termsAccepted);
+        handleChange('terms_accepted', !termsAccepted);
+      };
+
   
     return (
       <View style={styles.termsContainer}>
@@ -307,20 +346,23 @@ const SignupScreen = ({ navigation }) => {
           </Text>
         </ScrollView>
   
-        <CheckBox
-                title="I agree to the Terms of Service"
-                checked={termsAccepted}
-                onPress={() => setTermsAccepted(!termsAccepted)}
-                containerStyle={{ opacity: isTosBottomReached ? 1 : 0.1 }}
-                disabled={!isTosBottomReached}
+            <CheckBox
+            title="I agree to the Terms of Service"
+            checked={termsAccepted}
+            onPress={onTermsAcceptanceChange}
+            containerStyle={{ opacity: isTosBottomReached ? 1 : 0 }}
+            disabled={!isTosBottomReached}
             />
   
         <TouchableOpacity
-          style={[styles.button, { opacity: termsAccepted && isTosBottomReached ? 1 : 0.1 }]}
-          disabled={!termsAccepted || !isTosBottomReached}
-          onPress={() => setShowTermsPage(false)}
-        >
-          <Text style={styles.buttonText}>Proceed</Text>
+            style={[styles.button, { opacity: termsAccepted && isTosBottomReached ? 1 : 0 }]}
+            disabled={!termsAccepted || !isTosBottomReached}
+            onPress={() => {
+                setShowTermsPage(false);
+                setCurrentStep(1); // Move to the next step (User Type Selection)
+            }}
+            >
+            <Text style={styles.buttonText}>Proceed</Text>
         </TouchableOpacity>
       </View>
     );
@@ -347,11 +389,14 @@ const SignupScreen = ({ navigation }) => {
                     <Picker.Item label="Support Provider" value="support_provider" />
                 </Picker>
                 <TouchableOpacity
-                    style={styles.button}
-                    onPress={handleNext}
-                    disabled={!userType}
+                style={styles.button}
+                onPress={() => {
+                    handleNext();
+                    setCurrentStep(2); // Move to the next step (Registration Details)
+                }}
+                disabled={!userType}
                 >
-                    <Text style={styles.buttonText}>Next</Text>
+                <Text style={styles.buttonText}>Next</Text>
                 </TouchableOpacity>
             </>
         );
@@ -402,6 +447,22 @@ const SignupScreen = ({ navigation }) => {
           style={styles.input}
         />
 
+        {/* First Name Input */}
+        <TextInput
+            placeholder="First Name"
+            value={formData.first_name}
+            onChangeText={(text) => handleChange('first_name', text)}
+            style={styles.input}
+        />
+
+        {/* Last Name Input */}
+        <TextInput
+            placeholder="Last Name"
+            value={formData.last_name}
+            onChangeText={(text) => handleChange('last_name', text)}
+            style={styles.input}
+        />
+    
         {/* ID Type Picker */}
         <Picker
           selectedValue={formData.id_type}
@@ -413,16 +474,18 @@ const SignupScreen = ({ navigation }) => {
           ))}
         </Picker>
 
-        {/* Country of Issue Picker */}
-        <Picker
-          selectedValue={formData.country_of_issue}
-          onValueChange={(itemValue) => handleChange('country_of_issue', itemValue)}
-          style={styles.picker}
-        >
-          {countries.map((country, index) => (
-            <Picker.Item key={index} label={country.name} value={country.id} />
-          ))}
-        </Picker>
+        {/* Conditionally render Country of Issue Picker */}
+        {formData.id_type === 'other' && (
+            <Picker
+            selectedValue={formData.country_of_issue}
+            onValueChange={(itemValue) => handleChange('country_of_issue', itemValue)}
+            style={styles.picker}
+            >
+            {countries.map((country, index) => (
+                <Picker.Item key={index} label={country.name} value={country.id} />
+            ))}
+            </Picker>
+        )}
   
         {/* Identification Number Input */}
         <TextInput
@@ -444,26 +507,32 @@ const SignupScreen = ({ navigation }) => {
   
         {/* Country Picker */}
         <Picker
-          selectedValue={formData.country}
-          onValueChange={(itemValue) => handleChange('country', itemValue)}
-          style={styles.picker}
+            selectedValue={formData.country}
+            onValueChange={(itemValue) => handleChange('country', itemValue)}
+            style={styles.picker}
         >
-          {countries.map((country, index) => (
-            <Picker.Item key={index} label={country.name} value={country.id} />
-          ))}
+            <Picker.Item label="Choose Country" value="" />
+            {countries.map((country, index) => (
+                <Picker.Item key={index} label={country.name} value={country.id} />
+            ))}
         </Picker>
 
-        {/* City Picker */}
-        <Picker
-          selectedValue={formData.city}
-          onValueChange={(itemValue) => handleChange('city', itemValue)}
-          style={styles.picker}
-        >
-          {cities.map((city, index) => (
-            <Picker.Item key={index} label={city.name} value={city.id} />
-          ))}
-        </Picker>
-  
+        {formData.country && formData.country !== '' && (
+            cities.length > 0 ? (
+                <Picker
+                    selectedValue={formData.city}
+                    onValueChange={(itemValue) => handleChange('city', itemValue)}
+                    style={styles.picker}
+                >
+                    {cities.map((city, index) => (
+                        <Picker.Item key={index} label={city.name} value={city.id} />
+                    ))}
+                </Picker>
+            ) : (
+                <Text>No cities available for the selected country.</Text>
+            )
+        )}
+        
 
   
         {/* Profile Picture Upload */}
@@ -479,12 +548,13 @@ const SignupScreen = ({ navigation }) => {
         {renderCommonFields()}
   
         {/* Gender Picker */}
-        <Text style={styles.label}>Gender</Text>
         <Picker
+        
           selectedValue={formData.gender}
           onValueChange={(itemValue) => handleChange('gender', itemValue)}
           style={styles.picker}
         >
+          <Picker.Item label="Select Gender" value="" />
           {genderChoices.map((choice, index) => (
             <Picker.Item key={index} label={choice.label} value={choice.value} />
           ))}
@@ -499,20 +569,20 @@ const SignupScreen = ({ navigation }) => {
         />
   
         {/* Intentions Selection */}
-        <Text style={styles.label}>Intentions</Text>
+        <Text style={styles.label}>Select Intentions</Text>
         <SectionedMultiSelect
-          items={intentions.map(intention => ({
-            name: intention.human_readable_name, 
-            id: intention.id 
-          }))}
-          uniqueKey="id"
-          selectText="Select Intentions"
-          showDropDowns={true}
-          readOnlyHeadings={true}
-          onSelectedItemsChange={(selectedItems) => handleChange('intentions', selectedItems)}
-          selectedItems={formData.intentions}
-          IconRenderer={Icon}
-        />
+            items={intentions.map(intention => ({
+                name: intention.human_readable_name, 
+                id: intention.id 
+            }))}
+            uniqueKey="id"
+            selectText="Selected Intentions"
+            showDropDowns={true}
+            onSelectedItemsChange={(selectedItems) => handleChange('intentions', selectedItems)}
+            selectedItems={formData.intentions}
+            IconRenderer={Icon}
+            selectedIconComponent={<CustomSelectedIcon />}
+            />
       </>
     );
   };
@@ -526,25 +596,19 @@ const SignupScreen = ({ navigation }) => {
         {/* Support Provider Categories MultiSelect */}
         <Text style={styles.label}>Support Provider Categories</Text>
         <SectionedMultiSelect
-          items={categories.map(category => ({
-            name: category.name, 
-            id: category.id 
-          }))}
-          uniqueKey="id"
-          selectText="Select Categories"
-          onSelectedItemsChange={(selectedItems) => handleChange('support_provider_categories', selectedItems)}
-          selectedItems={formData.support_provider_categories}
-          IconRenderer={Icon}
-        />
-  
-        {/* Support Provider specific fields */}
-        <TextInput
-          placeholder="Looking to Earn"
-          value={formData.looking_to_earn.toString()}
-          onChangeText={(text) => handleChange('looking_to_earn', text === 'true')}
-          style={styles.input}
-        />
-  
+            items={categories.map(category => ({
+                name: category.name, 
+                id: category.id 
+            }))}
+            uniqueKey="id"
+            selectText="Selected Categories"
+            showDropDowns={true}
+            onSelectedItemsChange={(selectedItems) => handleChange('support_provider_categories', selectedItems)}
+            selectedItems={formData.support_provider_categories}
+            IconRenderer={Icon}
+            selectedIconComponent={<CustomSelectedIcon />}
+            />
+   
         {/* Additional Info Input */}
         <TextInput
           placeholder="Additional Information"
@@ -555,16 +619,23 @@ const SignupScreen = ({ navigation }) => {
   
         {/* Kosher Checkbox */}
         <CheckBox
-          title='Kosher'
+          title='Kosher Services ?'
           checked={formData.kosher}
           onPress={() => handleChange('kosher', !formData.kosher)}
         />
   
         {/* Accessible Facilities Checkbox */}
         <CheckBox
-          title='Accessible Facilities'
+          title='Accessible Facilities ?'
           checked={formData.accessible_facilities}
           onPress={() => handleChange('accessible_facilities', !formData.accessible_facilities)}
+        />
+
+        {/* Looking to Earn Checkbox */}
+        <CheckBox
+            title='Looking to Earn ?'
+            checked={formData.looking_to_earn}
+            onPress={() => handleChange('looking_to_earn', !formData.looking_to_earn)}
         />
   
         {/* Service Hours Input */}
@@ -591,7 +662,8 @@ const SignupScreen = ({ navigation }) => {
           onSelectedItemsChange={(selectedItems) => handleChange('languages_spoken', selectedItems)}
           selectedItems={formData.languages_spoken}
           IconRenderer={Icon}
-        />
+          selectedIconComponent={<CustomSelectedIcon />}
+          />
 
 
 
@@ -708,11 +780,9 @@ const SignupScreen = ({ navigation }) => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
       >
+        <ProgressIndicator currentStep={currentStep} steps={steps} />
         <View style={styles.card}>
-          <Text style={styles.title}>Sign Up</Text>
-  
           {renderFormBasedOnSelection()}
-  
           {/* Only show the 'SIGN UP' button when appropriate */}
           {isTypeSelected && !isDecidingShelter && (
             <TouchableOpacity 

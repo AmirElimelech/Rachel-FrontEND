@@ -7,6 +7,11 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
   card: {
     width: '90%',
     backgroundColor: 'rgba(255, 255, 255, 0.7)',
@@ -33,11 +38,12 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.7)',
   },
   picker: {
-    width: '100%',
+    width: '80%',
     marginBottom: 20,
+    
   },
   button: {
-    backgroundColor: 'rgba(200, 211, 211, 0.8)',
+    backgroundColor: '#6E6E6E',
     borderRadius: 5,
     width: '100%',
     paddingVertical: 10,
@@ -119,6 +125,33 @@ export const styles = StyleSheet.create({
   noButton: {
     backgroundColor: '#F44336', // Example red color
   },
+
+progressContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  stepDot: {
+    height: 10,
+    width: 10,
+    borderRadius: 5,
+    backgroundColor: '#ccc',
+    marginHorizontal: 5,
+  },
+  activeStepDot: {
+    backgroundColor: '#6E6E6E',
+    width: 15, 
+    height: 10,
+    borderRadius: 5,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 2,
+    elevation: 4, 
+  },
+
+  
   
 
 });
