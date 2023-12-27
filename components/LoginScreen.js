@@ -1,14 +1,21 @@
 
 // export default LoginScreen;
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ImageBackground, Image } from 'react-native';
 import axios from 'axios';
 import { styles } from './LoginScreenStyle';
-import { ImageBackground } from 'react-native';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+
 
 const LoginScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+
+
+  const togglePasswordVisibility = () => {
+    setIsPasswordVisible(!isPasswordVisible);
+  };
 
   const handleLogin = async () => {
     try {
@@ -45,9 +52,13 @@ const LoginScreen = ({ navigation }) => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
+
       <View style={styles.card}>
-        {/* Logo placeholder - replace with <Image> if you have a logo */}
-        <Text style={styles.logo}>Rachel LOGO here</Text>
+          {/* Logo Image */}
+          <Image
+            source={require('../assets/RachelLOGO.png')}
+            style={styles.logo} // You might need to adjust the style
+          />
         
         {/* Username Input */}
         <TextInput
@@ -60,15 +71,22 @@ const LoginScreen = ({ navigation }) => {
           keyboardType="default"
         />
 
-        {/* Password Input */}
-        <TextInput
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          style={styles.input}  
-          autoCompleteType="off"
-        />
+            <View style={styles.passwordFieldContainer}>
+            <TextInput
+              placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!isPasswordVisible}
+              style={styles.passwordInput}
+            />
+            <TouchableOpacity onPress={togglePasswordVisibility} style={styles.eyeIcon}>
+              <MaterialIcons
+                name={isPasswordVisible ? "visibility-off" : "visibility"}
+                size={25}
+                color="#6E6E6E"
+              />
+            </TouchableOpacity>
+          </View>
 
         {/* Login Button */}
         <TouchableOpacity style={styles.button} onPress={handleLogin}>

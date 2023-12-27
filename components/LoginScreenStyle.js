@@ -17,11 +17,42 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logo: {
-    marginBottom: 30, // Give more space around the logo
-    fontSize: 24,
-    fontWeight: 'bold',
-    // Consider a simple logo or text here
+    width: 150, // Adjust as needed
+    height: 100, // Adjust as needed
+    resizeMode: 'contain', // Ensure the logo is scaled properly
+    marginBottom: 30, // Space below the logo
+    opacity: 0.7,
+},
+
+passwordFieldContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 20,
+    borderWidth: 0.5,
+    borderColor: '#d6d6d6',
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
   },
+
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    fontSize: 16,
+    borderTopLeftRadius: 10, // Match the border radius
+    borderBottomLeftRadius: 10, // Match the border radius
+    backgroundColor: 'transparent', // To avoid overriding the container's background
+    borderWidth: 0, // Remove individual border from input
+  },
+
+
+  eyeIcon: {
+    paddingRight: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
   input: {
     width: '100%',
     marginBottom: 20, // Increase spacing between inputs
