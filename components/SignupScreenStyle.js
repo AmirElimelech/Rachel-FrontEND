@@ -26,6 +26,8 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 30,
   },
+
+  
   input: {
     width: '100%',
     marginBottom: 20,
@@ -36,7 +38,18 @@ export const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    paddingRight: 40, // Right padding to prevent text from going under the icon
+    flex: 1,
   },
+
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
+
+
   picker: {
     width: '80%',
     marginBottom: 20,
@@ -117,6 +130,42 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     marginHorizontal: 10, // Adds horizontal space between buttons
   },
+
+  inputIcon: {
+    position: 'absolute',
+    right: 10,
+    top: 10,
+  },
+
+  passwordFieldContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 20,
+    borderWidth: 0.5,
+    borderColor: '#d6d6d6',
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+  },
+  
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    fontSize: 16,
+    borderTopLeftRadius: 10,
+    borderBottomLeftRadius: 10,
+    backgroundColor: 'transparent', 
+    borderWidth: 0, // Remove border
+  },
+
+  
+  eyeIcon: {
+    paddingRight: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
   
   yesButton: {
     backgroundColor: '#4CAF50', // Example green color

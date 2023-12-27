@@ -71,8 +71,11 @@ const SignupScreen = ({ navigation }) => {
   const [isShelterStep, setIsShelterStep] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isTypeSelected, setIsTypeSelected] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState(0);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isDecidingShelter, setIsDecidingShelter] = useState(false);
   const [isTosBottomReached, setIsTosBottomReached] = useState(false);
+
  
 
 
@@ -92,6 +95,10 @@ const SignupScreen = ({ navigation }) => {
         ))}
       </View>
     );
+  };
+
+  const togglePasswordVisibility = () => {
+    setIsPasswordVisible(!isPasswordVisible);
   };
 
   
@@ -207,30 +214,61 @@ const SignupScreen = ({ navigation }) => {
 
   }, []);
 
-  const handleChange = (name, value) => {
-    if (name === 'intentions') {
-      // Special handling for intentions as it's an array
-      setFormData({ ...formData, intentions: value });
-    } else {
-      // For all other fields
-      setFormData({ ...formData, [name]: value });
-    }
+//   const handleChange = (name, value) => {
+//     if (name === 'intentions') {
+//       // Special handling for intentions as it's an array
+//       setFormData({ ...formData, intentions: value });
 
-    setFormData(prevFormData => {
-        // Handle ID type change and set country_of_issue for specific types
-        if (name === 'id_type') {
-            const isIsraeliIdOrPassport = value === 'passport' || value === 'israeli_id';
-            return {
-                ...prevFormData,
-                [name]: value,
-                country_of_issue: isIsraeliIdOrPassport ? '101' : prevFormData.country_of_issue
-            };
-        } else {
-            // For all other fields, update the value as usual
-            return { ...prevFormData, [name]: value };
-        }
-    });
+//     if (name === 'password1') {
+//     setPasswordStrength(evaluatePasswordStrength(value));
+//     }
+
+//     } else {
+//       // For all other fields
+//       setFormData({ ...formData, [name]: value });
+//     }
+
+//     setFormData(prevFormData => {
+//         // Handle ID type change and set country_of_issue for specific types
+//         if (name === 'id_type') {
+//             const isIsraeliIdOrPassport = value === 'passport' || value === 'israeli_id';
+//             return {
+//                 ...prevFormData,
+//                 [name]: value,
+//                 country_of_issue: isIsraeliIdOrPassport ? '101' : prevFormData.country_of_issue
+//             };
+//         } else {
+//             // For all other fields, update the value as usual
+//             return { ...prevFormData, [name]: value };
+//         }
+//     });
+//   };
+
+const handleChange = (name, value) => {
+    // Special handling for the password field
+    if (name === 'password1') {
+      setPasswordStrength(evaluatePasswordStrength(value));
+      setFormData(prevFormData => ({ ...prevFormData, [name]: value }));
+    }
+    // Special handling for intentions as it's an array
+    else if (name === 'intentions') {
+      setFormData(prevFormData => ({ ...prevFormData, intentions: value }));
+    }
+    // Handle ID type change and set country_of_issue for specific types
+    else if (name === 'id_type') {
+      const isIsraeliIdOrPassport = value === 'passport' || value === 'israeli_id';
+      setFormData(prevFormData => ({
+        ...prevFormData,
+        [name]: value,
+        country_of_issue: isIsraeliIdOrPassport ? '101' : prevFormData.country_of_issue
+      }));
+    } 
+    // For all other fields, update the value as usual
+    else {
+      setFormData(prevFormData => ({ ...prevFormData, [name]: value }));
+    }
   };
+  
 
 
     const handleNext = () => {
@@ -240,6 +278,68 @@ const SignupScreen = ({ navigation }) => {
     }
     };
 
+    const evaluatePasswordStrength = (password) => {
+        let strength = 0;
+        const lengthCriteria = password.length >= 8;
+        const lowercaseCriteria = /[a-z]/.test(password);
+        const uppercaseCriteria = /[A-Z]/.test(password);
+        const numberCriteria = /\d/.test(password);
+        const specialCharCriteria = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+        const consecutiveCriteria = !/(\w)\1{2,}/.test(password); // Checks for 3 or more consecutive characters
+        const commonPatternCriteria = !/password|123456|qwerty/.test(password); // Example of common patterns to avoid
+    
+        if (lengthCriteria) strength += 1;
+        if (lowercaseCriteria && uppercaseCriteria) strength += 1;
+        if (numberCriteria) strength += 1;
+        if (specialCharCriteria) strength += 1;
+        if (consecutiveCriteria && commonPatternCriteria) strength += 1;
+    
+        return strength; // Returns a number between 0 and 5
+    };
+
+
+      const PasswordStrengthIndicator = ({ strength }) => {
+        let backgroundColor;
+        let text;
+      
+        switch (strength) {
+          case 0:
+            backgroundColor = 'transparent';
+            text = '';
+            break;
+          case 1:
+            backgroundColor = 'red';
+            text = 'Very Weak';
+            break;
+          case 2:
+            backgroundColor = 'orange';
+            text = 'Weak';
+            break;
+          case 3:
+            backgroundColor = 'yellow';
+            text = 'Medium';
+            break;
+          case 4:
+            backgroundColor = 'lightgreen';
+            text = 'Strong';
+            break;
+          case 5:
+            backgroundColor = 'green';
+            text = 'Very Strong';
+            break;
+          default:
+            backgroundColor = 'transparent';
+            text = '';
+        }
+      
+        return (
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 5 }}>
+            <View style={{ width: `${(strength / 5) * 50}%`, height: 7, backgroundColor, borderRadius: 2.5 }} />
+            <Text style={{ marginLeft: 10 }}>{text}</Text>
+          </View>
+        );
+      };
+      
     const renderShelterDecisionStep = () => {
         return (
           <View style={styles.shelterDecisionContainer}>
@@ -428,24 +528,45 @@ const SignupScreen = ({ navigation }) => {
           onChangeText={(text) => handleChange('email', text)}
           style={styles.input}
         />
-  
-        {/* Password Input */}
+        
+        <View style={styles.passwordFieldContainer}>
         <TextInput
-          placeholder="Password"
-          value={formData.password1}
-          onChangeText={(text) => handleChange('password1', text)}
-          secureTextEntry={true}
-          style={styles.input}
+            placeholder="Password"
+            value={formData.password1}
+            onChangeText={(text) => handleChange('password1', text)}
+            secureTextEntry={!isPasswordVisible}
+            style={styles.passwordInput}
         />
+        <TouchableOpacity onPress={togglePasswordVisibility} style={styles.eyeIcon}>
+            <MaterialIcons
+            name={isPasswordVisible ? "visibility-off" : "visibility"}
+            size={25}
+            color="#6E6E6E"
+            />
+        </TouchableOpacity>
+        </View>
+
+
+
+        {formData.password1.length > 0 && <PasswordStrengthIndicator strength={passwordStrength} />}
+
   
-        {/* Confirm Password Input */}
+        <View style={styles.passwordFieldContainer}>
         <TextInput
-          placeholder="Confirm Password"
-          value={formData.password2}
-          onChangeText={(text) => handleChange('password2', text)}
-          secureTextEntry={true}
-          style={styles.input}
+            placeholder="Confirm Password"
+            value={formData.password2}
+            onChangeText={(text) => handleChange('password2', text)}
+            secureTextEntry={!isPasswordVisible} e
+            style={styles.passwordInput}
         />
+        <TouchableOpacity onPress={togglePasswordVisibility} style={styles.eyeIcon}> 
+            <MaterialIcons
+            name={isPasswordVisible ? "visibility-off" : "visibility"}
+            size={25}
+            color="#6E6E6E"
+            />
+        </TouchableOpacity>
+        </View>
 
         {/* First Name Input */}
         <TextInput
