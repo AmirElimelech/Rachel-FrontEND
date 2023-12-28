@@ -2,7 +2,7 @@ import axios from 'axios';
 import { styles } from './SignupScreenStyle';
 import { ImageBackground } from 'react-native';
 import { CheckBox } from 'react-native-elements';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -12,6 +12,10 @@ import {
   } from 'react-native';
 
 
+
+
+
+  
 
 const SignupScreen = ({ navigation }) => {
   // State for common and specific fields
@@ -60,6 +64,9 @@ const SignupScreen = ({ navigation }) => {
 
 
   // Additional state variables
+  const categorySelectRef = useRef(null);
+  const languageSelectRef = useRef(null);
+  const intentionSelectRef = useRef(null);
   const [cities, setCities] = useState([]);
   const [languages, setLanguages] = useState([]);
   const [countries, setCountries] = useState([]);
@@ -76,7 +83,8 @@ const SignupScreen = ({ navigation }) => {
   const [isDecidingShelter, setIsDecidingShelter] = useState(false);
   const [isTosBottomReached, setIsTosBottomReached] = useState(false);
 
- 
+  
+
 
 
 
@@ -214,61 +222,33 @@ const SignupScreen = ({ navigation }) => {
 
   }, []);
 
-//   const handleChange = (name, value) => {
-//     if (name === 'intentions') {
-//       // Special handling for intentions as it's an array
-//       setFormData({ ...formData, intentions: value });
 
-//     if (name === 'password1') {
-//     setPasswordStrength(evaluatePasswordStrength(value));
-//     }
+    const handleChange = (name, value) => {
+        // Special handling for multi-select fields (arrays)
+        if (name === 'intentions' || name === 'support_provider_categories' || name === 'languages_spoken') {
+        setFormData(prevFormData => ({ ...prevFormData, [name]: value }));
+        }
+        // Special handling for the password field
+        else if (name === 'password1') {
+        setPasswordStrength(evaluatePasswordStrength(value));
+        setFormData(prevFormData => ({ ...prevFormData, [name]: value }));
+        }
+        // Handle ID type change and set country_of_issue for specific types
+        else if (name === 'id_type') {
+        const isIsraeliIdOrPassport = value === 'passport' || value === 'israeli_id';
+        setFormData(prevFormData => ({
+            ...prevFormData,
+            [name]: value,
+            country_of_issue: isIsraeliIdOrPassport ? '101' : prevFormData.country_of_issue
+        }));
+        } 
+        // For all other fields, update the value as usual
+        else {
+        setFormData(prevFormData => ({ ...prevFormData, [name]: value }));
+        }
+    };
 
-//     } else {
-//       // For all other fields
-//       setFormData({ ...formData, [name]: value });
-//     }
-
-//     setFormData(prevFormData => {
-//         // Handle ID type change and set country_of_issue for specific types
-//         if (name === 'id_type') {
-//             const isIsraeliIdOrPassport = value === 'passport' || value === 'israeli_id';
-//             return {
-//                 ...prevFormData,
-//                 [name]: value,
-//                 country_of_issue: isIsraeliIdOrPassport ? '101' : prevFormData.country_of_issue
-//             };
-//         } else {
-//             // For all other fields, update the value as usual
-//             return { ...prevFormData, [name]: value };
-//         }
-//     });
-//   };
-
-const handleChange = (name, value) => {
-    // Special handling for the password field
-    if (name === 'password1') {
-      setPasswordStrength(evaluatePasswordStrength(value));
-      setFormData(prevFormData => ({ ...prevFormData, [name]: value }));
-    }
-    // Special handling for intentions as it's an array
-    else if (name === 'intentions') {
-      setFormData(prevFormData => ({ ...prevFormData, intentions: value }));
-    }
-    // Handle ID type change and set country_of_issue for specific types
-    else if (name === 'id_type') {
-      const isIsraeliIdOrPassport = value === 'passport' || value === 'israeli_id';
-      setFormData(prevFormData => ({
-        ...prevFormData,
-        [name]: value,
-        country_of_issue: isIsraeliIdOrPassport ? '101' : prevFormData.country_of_issue
-      }));
-    } 
-    // For all other fields, update the value as usual
-    else {
-      setFormData(prevFormData => ({ ...prevFormData, [name]: value }));
-    }
-  };
-  
+    
 
 
     const handleNext = () => {
@@ -385,6 +365,16 @@ const handleChange = (name, value) => {
   };
 
 
+  const formatLabel = (fieldName) => {
+    // Replace underscores with spaces and capitalize each word
+    return fieldName
+        .replace(/_/g, ' ')
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    };
+
+    
   const renderTermsOfService = () => {
   
     const onScroll = ({ nativeEvent }) => {
@@ -663,7 +653,56 @@ const handleChange = (name, value) => {
   };
   
   
+  
+  const renderMultiSelectField = (selectedItems, items, fieldName, placeholderText) => {
+
+    let selectRef;
+    if (fieldName === 'intentions') {
+        selectRef = intentionSelectRef;
+    } else if (fieldName === 'support_provider_categories') {
+        selectRef = categorySelectRef;
+    } else if (fieldName === 'languages_spoken') {
+        selectRef = languageSelectRef;
+    }
+
+    return (
+        <View style={styles.multiSelectFieldContainer}>
+            <TouchableOpacity onPress={() => selectRef.current._toggleSelector()}>
+                <Text style={styles.multiSelectFieldText}>{placeholderText}</Text>
+            </TouchableOpacity>
+
+
+            <SectionedMultiSelect
+            ref={selectRef}
+            items={items.map(item => ({
+                name: item.human_readable_name || item.name,
+                id: item.id
+            }))}
+            uniqueKey="id"
+            selectText={`Select ${fieldName}`}
+            showDropDowns={true}
+            onSelectedItemsChange={(selectedItems) => handleChange(fieldName, selectedItems)}
+            selectedItems={selectedItems}
+            IconRenderer={Icon}
+            selectedIconComponent={<CustomSelectedIcon />}
+            hideSelect={true}
+            styles={{
+                modalWrapper: styles.multiSelectMainWrapper,
+                selectToggle: styles.multiSelectDropdown,
+                itemText: styles.multiSelectText,
+                selectedItem: styles.multiSelectItem,
+                searchTextInput: styles.searchTextInput,
+                confirmButton: styles.confirmButton,
+            }}
+            />
+        </View>
+    );
+};
+
+  
   const renderCivilianForm = () => {
+
+
     return (
       <>
         {renderCommonFields()}
@@ -689,21 +728,9 @@ const handleChange = (name, value) => {
           style={styles.input}
         />
   
-        {/* Intentions Selection */}
-        <Text style={styles.label}>Select Intentions</Text>
-        <SectionedMultiSelect
-            items={intentions.map(intention => ({
-                name: intention.human_readable_name, 
-                id: intention.id 
-            }))}
-            uniqueKey="id"
-            selectText="Selected Intentions"
-            showDropDowns={true}
-            onSelectedItemsChange={(selectedItems) => handleChange('intentions', selectedItems)}
-            selectedItems={formData.intentions}
-            IconRenderer={Icon}
-            selectedIconComponent={<CustomSelectedIcon />}
-            />
+    {renderMultiSelectField(formData.intentions, intentions, 'intentions', 'What are your main intentions for using the app?')}
+
+
       </>
     );
   };
@@ -714,21 +741,10 @@ const handleChange = (name, value) => {
       <>
         {renderCommonFields()}
 
-        {/* Support Provider Categories MultiSelect */}
-        <Text style={styles.label}>Support Provider Categories</Text>
-        <SectionedMultiSelect
-            items={categories.map(category => ({
-                name: category.name, 
-                id: category.id 
-            }))}
-            uniqueKey="id"
-            selectText="Selected Categories"
-            showDropDowns={true}
-            onSelectedItemsChange={(selectedItems) => handleChange('support_provider_categories', selectedItems)}
-            selectedItems={formData.support_provider_categories}
-            IconRenderer={Icon}
-            selectedIconComponent={<CustomSelectedIcon />}
-            />
+        {renderMultiSelectField(formData.support_provider_categories, categories, 'support_provider_categories', 'Select Categories')}
+
+
+     
    
         {/* Additional Info Input */}
         <TextInput
@@ -772,19 +788,9 @@ const handleChange = (name, value) => {
         {/* ... */}
   
         {/* Languages Spoken MultiSelect */}
-        <Text style={styles.label}>Languages Spoken</Text>
-        <SectionedMultiSelect
-          items={languages.map(language => ({
-            name: language.name, 
-            id: language.id 
-          }))}
-          uniqueKey="id"
-          selectText="Select Languages"
-          onSelectedItemsChange={(selectedItems) => handleChange('languages_spoken', selectedItems)}
-          selectedItems={formData.languages_spoken}
-          IconRenderer={Icon}
-          selectedIconComponent={<CustomSelectedIcon />}
-          />
+        {renderMultiSelectField(formData.languages_spoken, languages, 'languages_spoken', 'Select Languages')}
+        
+
 
 
 

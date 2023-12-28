@@ -51,10 +51,16 @@ export const styles = StyleSheet.create({
 
 
   picker: {
-    width: '80%',
-    marginBottom: 20,
+    width: '100%',
+    borderRadius: 6, 
+    borderWidth: 0.5, 
+    borderColor: '#d1d1d1', 
+    marginBottom:20,
+
+  
     
   },
+
   button: {
     backgroundColor: '#6E6E6E',
     borderRadius: 5,
@@ -64,6 +70,7 @@ export const styles = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: 20,
   },
+
   buttonText: {
     color: 'white',
     fontWeight: '600',
@@ -71,34 +78,55 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Add styles for MultiSelect component
-  multiSelectContainer: {
-    marginBottom: 20,
-    borderWidth: 1, // Temporary, for debugging
-    borderColor: 'red', // Temporary, for debugging
-},
-  multiSelectText: {
-    color: '#000', // Adjust text color as needed
-  },
-  multiSelectItem: {
-    backgroundColor: '#FFF', // Adjust item background color as needed
-  },
+
   searchInputStyle: {
     color: '#000', // Adjust search input text color as needed
   },
   selectTextPlaceholder: {
     color: '#888', // Adjust placeholder text color as needed
   },
-  multiSelectMainWrapper: {
-    height: 200, // Adjust the height as needed for better visibility
-    marginBottom: 20,
+
+
+multiSelectMainWrapper: {
+    padding: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 15, // Rounded corners for the modal
   },
   
   multiSelectDropdown: {
-    backgroundColor: '#fff',
-    padding: 10,
-    borderRadius: 5,
+    backgroundColor: '#ffffff', // White background for the dropdown
+    paddingVertical: 12, // Vertical padding for dropdown
+    paddingHorizontal: 15, // Horizontal padding for dropdown
+    borderRadius: 6, // Rounded corners for the dropdown
+    borderWidth: 1, // Border for the dropdown
+    borderColor: '#d1d1d1', // Light gray border color
+    marginBottom: 10, // Margin bottom
   },
+
+  multiSelectText: {
+    color: '#333333', // Darker text for better readability
+    fontSize: 16, // Slightly larger text
+  },
+
+  multiSelectItem: {
+    backgroundColor: '#ffffff', // White background for each item
+    borderBottomWidth: 1, // Border bottom for each item
+    borderBottomColor: '#e6e6e6', // Light gray border bottom color
+    paddingVertical: 10, // Vertical padding for items
+  },
+
+  searchTextInput: {
+    backgroundColor: '#ffffff', // White background for search input
+    borderColor: '#cccccc', // Light gray border color
+    borderWidth: 1, // Border width for search input
+    borderRadius: 10, // Rounded corners for search input
+    padding: 10, // Padding for search input
+    marginRight: 5,
+    fontSize: 16, // Font size
+  },
+
+
+
 
   termsContainer: {
     padding: 10,
@@ -199,6 +227,42 @@ progressContainer: {
     shadowRadius: 2,
     elevation: 4, 
   },
+
+
+
+
+//   new 
+
+multiSelectFieldContainer: {
+    width: '100%',
+    marginBottom: 20,
+    borderWidth: 0.5,
+    borderColor: '#d6d6d6',
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    padding: 15,
+  },
+  multiSelectFieldText: {
+    fontSize: 16,
+    color: '#000',
+    marginBottom: 10, // Space between the label and the chosen items
+  },
+  chosenItemsContainer: {
+    marginTop: 5, // Space between the touchable area and the chosen items
+  },
+  chosenItemsLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8, // Increased spacing between label and items
+  },
+  chosenItem: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 5, // Added to separate items
+  },
+
+  
 
   
   
